@@ -63,11 +63,17 @@ class ElcorInvoiceManager:
             self.console.write("Please select an xlsx file\n")
             return
         
-        # Instancing a path class to the admin directory
+        # Instancing a path class to the selected directory
         p = Path(self.selected_directory)
+        if not p.is_dir():
+            self.console.write("Please select a valid folder\n")
+            return
 
         # Instancing a path class to the xlsx file
         xlsx = Path(self.selected_xlsx)
+        if not xlsx.suffix == '.xlsx':
+            self.console.write("Please select a valid xlsx file\n")
+            return
 
         # List all available files to scan
         extensions = ['pdf', 'jpg', 'jpeg', 'png']
