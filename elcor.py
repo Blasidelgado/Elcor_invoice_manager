@@ -112,7 +112,7 @@ class ElcorInvoiceManager:
                     reader.close()
 
                     # Manipulate file in respective inner directory
-                    self.console.write(manipulate_invoice(p, invoice, suffix, 'Facturas', data))
+                    self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
 
                 else: # PDF file is sent to our trusted API
                     info = parse_veryfi(invoice, self.client)
@@ -129,7 +129,7 @@ class ElcorInvoiceManager:
                     reader.close()
 
                     # Manipulate file in respective inner directory
-                    self.console.write(manipulate_invoice(p, invoice, suffix, 'Facturas', data))
+                    self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
             else: # File is an image that will be sent to our trusted API
                 info = parse_veryfi(invoice, self.client)
                 data = [info['date'], info['company'], info['concepts'], info['total']]
@@ -142,4 +142,4 @@ class ElcorInvoiceManager:
                 self.console.write(f'Data appended to xlsx succesfully.\n')
 
                 # Manipulate file in respective inner directory
-                self.console.write(manipulate_invoice(p, invoice, suffix, 'Facturas', data))
+                self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
