@@ -1,0 +1,15 @@
+# ignore Python byte code files
+*.pyc
+
+# ignore log files
+*.log
+
+# ignore env
+.env
+
+# ignore compiled files
+/dist
+/build
+
+# ignore cached files
+/__pycache__
