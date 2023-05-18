@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 
+
 def parse_afip(page):
     # Extract text from page
     text = page.extract_text(x_tolerance=2, y_tolerance=1)
@@ -55,27 +56,6 @@ def parse_afip(page):
     return info
 
     
-def parse_veryfi(page, client):
-    results = client.process_document(page)
-    unformatted_date = results['date']
-    date_object = datetime.strptime(unformatted_date, '%Y-%m-%d %H:%M:%S')
-    date = date_object.strftime('%d/%m/%Y')
-    company = results['vendor']['name']
-    items = results['line_items']
-    concepts = []
-    for item in items:
-        item_desc = item.get('description')
-        concepts.append(item_desc) if len(item_desc) < 25 else concepts.append(item_desc[:25])
-        
-    concepts = '/'.join(concepts)
-
-    total = float(results['total'])
-
-    info = {'date': date, 'company': company, 'concepts': concepts, 'total': total}
-
-    return info
-
-
 def update_worksheet(worksheet, data):
     last_row = worksheet.max_row
     worksheet.insert_rows(last_row + 1)
@@ -117,4 +97,3 @@ def manipulate_invoice(filepath, invoice, suf, type, data):
         os.rename(invoice, filename + suf)
 
     return f'Renamed {filename + suf} and moved succesfully\n'
-    

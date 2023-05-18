@@ -1,26 +1,29 @@
 import dotenv
+from datetime import datetime
 from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog
 import pdfplumber
 from openpyxl import load_workbook
 import veryfi
+
 from console import Console
-from helpers import parse_afip, parse_veryfi, update_worksheet, manipulate_invoice
+from Veryfi import Veryfi
+from helpers import parse_afip, update_worksheet, manipulate_invoice
 
 class ElcorInvoiceManager:
     def __init__(self, root):
         self.root = root
         self.selected_directory = None
         self.selected_xlsx = None
-        self.client = None
         self.setup_ui()
+        self.verify = Veryfi(self)
         dotenv.load_dotenv() # Load .env keys
         # Call setup verify to set up keys for further api requests
-        self.setup_veryfi(dotenv.get_key('.env', 'CLIENT_ID'), 
+        self.client = self.verify.setup_veryfi(dotenv.get_key('.env', 'CLIENT_ID'), 
             dotenv.get_key('.env', 'CLIENT_SECRET'), dotenv.get_key('.env', 'USERNAME'), 
             dotenv.get_key('.env', 'API_KEY'))
-
+        
     def setup_ui(self):
         # Create a grid with two columns and two rows
         self.root.columnconfigure(0, weight=3)
@@ -42,9 +45,6 @@ class ElcorInvoiceManager:
 
         self.console = Console(self.root)
         self.console.grid(row=3, column=0, columnspan=5)
-
-    def setup_veryfi(self, client_id, client_secret, username, api_key):
-        self.client = veryfi.Client(client_id, client_secret, username, api_key)
 
     def select_directory(self):
         self.selected_directory = filedialog.askdirectory()
@@ -83,9 +83,12 @@ class ElcorInvoiceManager:
         wb = load_workbook(filename = xlsx)
         ws = wb.active
 
+        data_list = []
+
         # Start scanning files
         for invoice in invoices:
-            self.console.write(f'Processing file: {invoice.name}\n')
+            filename = invoice.name
+            self.console.write(f'Processing file: {filename}\n')
             suffix = invoice.suffix
 
             if suffix == '.pdf':
@@ -98,48 +101,51 @@ class ElcorInvoiceManager:
 
                 # Read document metadata for further processing
                 if reader.metadata.get('Creator') == 'AFIP': # Administración Federal de Ingresos Públicos   
-                    info = parse_afip(page)
-                    data = [info['date'], info['company'], info['concepts'], info['total']]
+                    data = parse_afip(page)
 
-                    # Plug data in xlsl selected file
-                    update_worksheet(ws, data)
-
-                    # Save worksheet    
-                    wb.save(xlsx)
-                    self.console.write(f'Data appended to xlsx succesfully.\n')
+                    # Append data to data_list
+                    data_list.append(data)
 
                     # Close file
                     reader.close()
 
-                    # Manipulate file in respective inner directory
-                    self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
 
                 else: # PDF file is sent to our trusted API
-                    info = parse_veryfi(invoice, self.client)
-                    data = [info['date'], info['company'], info['concepts'], info['total']]
+                    info = self.verify.parse_veryfi(invoice, self.client)
 
-                    # Update worksheet
-                    update_worksheet(ws, data)
+                    if not self.verify.check_response(filename, info):
+                        continue
 
-                    # Save worksheet    
-                    wb.save(xlsx)
-                    self.console.write(f'Data appended to xlsx succesfully.\n')
+                    # Append data to data_list
+                    data_list.append(data)
 
                     # Close file
                     reader.close()
 
-                    # Manipulate file in respective inner directory
-                    self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
+                    
             else: # File is an image that will be sent to our trusted API
-                info = parse_veryfi(invoice, self.client)
-                data = [info['date'], info['company'], info['concepts'], info['total']]
+                data = self.verify.parse_veryfi(invoice, self.client)
+                
+                if not self.verify.check_response(filename, data):
+                    continue
+                
+                # Append data to data_list
+                data_list.append(data)
 
-                # Update worksheet
-                update_worksheet(ws, data)
+                # Close file
+                reader.close()
 
-                # Save worksheet    
-                wb.save(xlsx)
-                self.console.write(f'Data appended to xlsx succesfully.\n')
 
-                # Manipulate file in respective inner directory
-                self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
+            #TODO: Take data_list and sort it by date(date format should be dd/mm/Y)
+
+            # Plug data in xlsl selected file
+
+            update_worksheet(ws, data)
+
+            # Save worksheet    
+            wb.save(xlsx)
+            self.console.write(f'Data appended to xlsx succesfully.\n')
+
+            # Manipulate file in respective inner directory
+            self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
+            
