@@ -41,21 +41,56 @@ def parse_afip(page):
         products.append(product)
 
     # Take required data
-    date = temp_dict.get('Fecha de Emisión')
-    date = datetime.strptime(date, '%d/%m/%Y')
-    # If owner company is the emittor, take the receiver, else take the emittor
-    company = temp_dict['Razón Social'] if temp_dict['Razón Social'] != 'GRAINING SA' else temp_dict['Apellido y Nombre / Razón Social']
-    concepts = '/'.join(products)
-    # Clean total in order to convert it into a number
-    total = temp_dict['Importe Total'].removeprefix('$').strip().replace(',', '.')
-    # If owner company is the emittor, take the amount as positive, else account as negative balance
-    total = float(total) if temp_dict['Razón Social'] == 'GRAINING SA' else float(total) * (-1)
+    try:
+        date = temp_dict['Fecha de Emisión']
+        date = datetime.strptime(date, '%d/%m/%Y')
+        # If owner company is the emittor, take the receiver, else take the emittor
+        company = temp_dict['Razón Social'] if temp_dict['Razón Social'] != 'GRAINING SA' else temp_dict['Apellido y Nombre / Razón Social']
+        concepts = '/'.join(products)
+        # Clean total in order to convert it into a number
+        total = temp_dict['Importe Total'].removeprefix('$').strip().replace(',', '.')
+        # If owner company is the emittor, take the amount as positive, else account as negative balance
+        total = float(total) if temp_dict['Razón Social'] == 'GRAINING SA' else float(total) * (-1)
+    except:
+        return None
     
     info = {'date': date, 'company': company, 'concepts': concepts, 'total': total}
 
     return info
 
-    
+
+def parse_bank(page):
+    # Extract text from page
+    text = page.extract_text(x_tolerance=3, y_tolerance=3)
+
+    # Create a list using line breaks and declare a new dict
+    rows = text.split('\n')
+    temp_dict = {}
+
+    # Start iterating over rows to add info into dict
+    for line in rows:
+        # Format text lines into dicts
+        if ':' in line:
+            # Split line into key-value pairs using ':' as a separator
+            pairs = line.split(':')
+
+            # Add first pair to the info_dict
+            key, value = pairs[0].strip(), pairs[1].strip()
+            temp_dict[key] = value
+
+    # Take required information
+    date = temp_dict.get('Fecha de Pago')
+    try:
+        date = datetime.strptime(date, '%d/%m/%Y')
+        company = temp_dict.get('Beneficiario')
+    except:
+        return None
+
+    info = {'date': date, 'company': company}
+
+    return info
+
+
 def update_worksheet(worksheet, data):
     last_row = worksheet.max_row
     worksheet.insert_rows(last_row + 1)
@@ -76,6 +111,9 @@ def manipulate_invoice(filepath, invoice, suf, type, data):
     # Get date from file
     date = data.get('date')
     day, year, month = date.day, date.year, date.month
+
+    # Format month to be always 2 digits
+    month = str(month) if month > 9 else "0"+str(month)
 
     # Create new filename and helper variable for duplicates
     filename = f"{filepath}/{type}/{year}/{month}/{data.get('company')} {day}-{month}-{year}"

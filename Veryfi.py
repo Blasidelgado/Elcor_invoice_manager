@@ -24,18 +24,21 @@ class Veryfi():
         except BadRequest or ResourceNotFound or UnexpectedHTTPMethod or AccessLimitReached or InternalError:
             return 500
 
-        unformatted_date = results.get('date')
-        date = datetime.strptime(unformatted_date, '%Y-%m-%d %H:%M:%S')
-        company = results.get('vendor').get('name')
-        items = results.get('line_items')
-        concepts = []
+        try:
+            unformatted_date = results['date']
+            date = datetime.strptime(unformatted_date, '%Y-%m-%d %H:%M:%S')
+            company = results['vendor']['name']
+            items = results['line_items']
+            concepts = []
+            total = float(results['total'])
+        except:
+            return None
+        
         for item in items:
             item_desc = item.get('description')
             concepts.append(item_desc) if len(item_desc) < 25 else concepts.append(item_desc[:25])
             
         concepts = '/'.join(concepts)
-
-        total = float(results.get('total') or 0)
 
         info = {'date': date, 'company': company, 'concepts': concepts, 'total': total}
 
@@ -43,14 +46,16 @@ class Veryfi():
     
     
     def check_response(self, filename, response):
-        if isinstance(response, int):
+        if isinstance(response, int) or response == None:
             self.elcor_invoice_manager.console.write(f'Could not parse {filename}\n')
             if response == 401:
                 self.elcor_invoice_manager.console.write('Check your credential keys and client status at https://app.veryfi.com/\n')
             elif response == 408:
-                self.elcor_invoice_manager.console.write('Check your internet connection\n')
+                self.elcor_invoice_manager.console.write('Check your internet connection.\n')
+            elif response == None:
+                self.elcor_invoice_manager.console.write('Provide a clearer document and try again.\n')
             else:
-                self.elcor_invoice_manager.console.write('Something went wrong. Please try again later\n')
+                self.elcor_invoice_manager.console.write('Something went wrong. Please try again later.\n')
 
             return False
         

@@ -9,7 +9,7 @@ import pdfplumber
 from openpyxl import load_workbook
 
 from console import Console
-from helpers import manipulate_invoice, parse_afip, update_worksheet
+from helpers import manipulate_invoice, parse_afip, parse_bank, update_worksheet
 from Veryfi import Veryfi
 
 
@@ -100,14 +100,16 @@ class ElcorInvoiceManager:
                 # Read pdf with pdfplumber
                 reader = pdfplumber.open(invoice)
 
-                print(reader.metadata)
-
                 # Take only the first pdf page
                 page = reader.pages[0]
 
                 # Read document metadata for further processing
                 if reader.metadata.get('Creator') == 'AFIP': # Administración Federal de Ingresos Públicos   
                     data = parse_afip(page)
+
+                    if not data:
+                        self.console.write(f'Error parsing file {filename}')
+                        continue
 
                     # Append data to data_list
                     data_list.append(data)
@@ -116,7 +118,21 @@ class ElcorInvoiceManager:
                     reader.close()
 
                     # Manipulate file in respective inner directory
-                    self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
+                    self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
+                
+                # PDF engines used by our bank to generate pdfs
+                elif reader.metadata.get('Producer') == 'Skia/PDF m112' or reader.metadata.get('Producer') == 'Skia/PDF m113':
+                    data = parse_bank(page)
+
+                    if not data:
+                        self.console.write(f'Error parsing file {filename}')
+                        continue
+
+                    # Close file
+                    reader.close()
+
+                    # Manipulate file in respective inner directory
+                    self.console.write(manipulate_invoice(p, invoice, suffix, 'comprobantes de pago', data))
 
                 else: # PDF file is sent to our trusted API
                     data = self.verify.parse_veryfi(invoice, self.client)
@@ -131,7 +147,7 @@ class ElcorInvoiceManager:
                     reader.close()
                     
                     # Manipulate file in respective inner directory
-                    self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
+                    self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
 
                     
             else: # File is an image that will be sent to our trusted API
@@ -147,7 +163,7 @@ class ElcorInvoiceManager:
                 reader.close()
 
                 # Manipulate file in respective inner directory
-                self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
+                self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
 
         # Sort the data list by date
         sorted(data_list, key=itemgetter('date'))
