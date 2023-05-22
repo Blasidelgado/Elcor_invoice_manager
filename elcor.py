@@ -107,15 +107,15 @@ class ElcorInvoiceManager:
                 if reader.metadata.get('Creator') == 'AFIP': # Administración Federal de Ingresos Públicos   
                     data = parse_afip(page)
 
+                    # Close file
+                    reader.close()
+
                     if not data:
-                        self.console.write(f'Error parsing file {filename}')
+                        self.console.write(f'Error parsing file {filename}\n')
                         continue
 
                     # Append data to data_list
                     data_list.append(data)
-
-                    # Close file
-                    reader.close()
 
                     # Manipulate file in respective inner directory
                     self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
@@ -124,12 +124,12 @@ class ElcorInvoiceManager:
                 elif reader.metadata.get('Producer') == 'Skia/PDF m112' or reader.metadata.get('Producer') == 'Skia/PDF m113':
                     data = parse_bank(page)
 
-                    if not data:
-                        self.console.write(f'Error parsing file {filename}')
-                        continue
-
                     # Close file
                     reader.close()
+
+                    if not data:
+                        self.console.write(f'Error parsing file {filename}\n')
+                        continue
 
                     # Manipulate file in respective inner directory
                     self.console.write(manipulate_invoice(p, invoice, suffix, 'comprobantes de pago', data))
@@ -137,15 +137,15 @@ class ElcorInvoiceManager:
                 else: # PDF file is sent to our trusted API
                     data = self.verify.parse_veryfi(invoice, self.client)
 
+                    # Close file
+                    reader.close()
+
                     if not self.verify.check_response(filename, data):
                         continue
 
                     # Append data to data_list
                     data_list.append(data)
 
-                    # Close file
-                    reader.close()
-                    
                     # Manipulate file in respective inner directory
                     self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
 
@@ -153,14 +153,14 @@ class ElcorInvoiceManager:
             else: # File is an image that will be sent to our trusted API
                 data = self.verify.parse_veryfi(invoice, self.client)
                 
+                # Close file
+                reader.close()
+
                 if not self.verify.check_response(filename, data):
                     continue
                 
                 # Append data to data_list
                 data_list.append(data)
-
-                # Close file
-                reader.close()
 
                 # Manipulate file in respective inner directory
                 self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
