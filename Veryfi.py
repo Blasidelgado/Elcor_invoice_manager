@@ -25,8 +25,7 @@ class Veryfi():
             return 500
 
         unformatted_date = results.get('date')
-        date_object = datetime.strptime(unformatted_date, '%Y-%m-%d %H:%M:%S')
-        date = date_object.strftime('%d/%m/%Y')
+        date = datetime.strptime(unformatted_date, '%Y-%m-%d %H:%M:%S')
         company = results.get('vendor').get('name')
         items = results.get('line_items')
         concepts = []
@@ -47,11 +46,9 @@ class Veryfi():
         if isinstance(response, int):
             self.elcor_invoice_manager.console.write(f'Could not parse {filename}\n')
             if response == 401:
-                self.elcor_invoice_manager.console.write('Check your internet connection\n')
-            
-            elif response == 408:
                 self.elcor_invoice_manager.console.write('Check your credential keys and client status at https://app.veryfi.com/\n')
-            
+            elif response == 408:
+                self.elcor_invoice_manager.console.write('Check your internet connection\n')
             else:
                 self.elcor_invoice_manager.console.write('Something went wrong. Please try again later\n')
 

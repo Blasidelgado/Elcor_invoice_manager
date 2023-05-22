@@ -25,7 +25,6 @@ def parse_afip(page):
 
             # Split line into key-value pairs using ':' as a separator
             pairs = line.split(':')
-
             # Add first pair to the info_dict
             key, value = pairs[0].strip(), pairs[1].strip()
             temp_dict[key] = value
@@ -42,7 +41,8 @@ def parse_afip(page):
         products.append(product)
 
     # Take required data
-    date = temp_dict['Fecha de Emisión']
+    date = temp_dict.get('Fecha de Emisión')
+    date = datetime.strptime(date, '%d/%m/%Y')
     # If owner company is the emittor, take the receiver, else take the emittor
     company = temp_dict['Razón Social'] if temp_dict['Razón Social'] != 'GRAINING SA' else temp_dict['Apellido y Nombre / Razón Social']
     concepts = '/'.join(products)
@@ -59,7 +59,6 @@ def parse_afip(page):
 def update_worksheet(worksheet, data):
     last_row = worksheet.max_row
     worksheet.insert_rows(last_row + 1)
-
     for col, value in enumerate(data, start=1):
         cell = worksheet.cell(row=last_row+1, column=col)
         prev_cell = worksheet.cell(row=last_row, column=col)
@@ -71,14 +70,15 @@ def update_worksheet(worksheet, data):
         cell.protection = prev_cell.protection.copy()
         cell.alignment = prev_cell.alignment.copy()
 
+    return f'New data appended in row {last_row + 1}\n'
 
 def manipulate_invoice(filepath, invoice, suf, type, data):
     # Get date from file
-    date = datetime.strptime(data[0], '%d/%m/%Y')
-    year, month = date.year, date.month
+    date = data.get('date')
+    day, year, month = date.day, date.year, date.month
 
     # Create new filename and helper variable for duplicates
-    filename = f"{filepath}/{type}/{year}/{month}/{data[1]} {data[0].replace('/', '-')}"
+    filename = f"{filepath}/{type}/{year}/{month}/{data.get('company')} {day}-{month}-{year}"
     count = 1
 
     if os.path.exists(f"{filepath}/{type}/{year}/{month}/"):
