@@ -166,7 +166,7 @@ class ElcorInvoiceManager:
                 self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
 
         # Sort the data list by date
-        sorted(data_list, key=itemgetter('date'))
+        data_list = sorted(data_list, key=itemgetter('date'))
 
         # Iterate data from datalist and append each into a new row
         for data in data_list:
