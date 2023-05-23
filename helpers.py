@@ -28,15 +28,16 @@ def parse_afip(page):
             # Add first pair to the info_dict
             key, value = pairs[0].strip(), pairs[1].strip()
             temp_dict[key] = value
-        # Find indexes where product line-items are probably listed
+        # Find concepts previous lines
         if 'Código Producto / Servicio' in line:
-            start_index = rows.index(line) + 2 # Index + 1 corresponds to a row that is not intended to be so
-        if 'Importe Otros Tributos' in line:
-            end_index = rows.index(line)
+            index = rows.index(line) + 2 # Index + 1 corresponds to a strange pdfplumber behavior
 
-    # Search between indexes for line items
-    for i in range(start_index, end_index):
-        product = rows[i].strip()
+    # Start searching for concepts
+    while True:
+        product = rows[index].strip()
+        # Common text lines after concepts in AFIP invoices
+        if 'Importe Otros Tributos' in product or 'Subtotal' in product:
+            break
         product = product[:25] if len(product) > 25 else product
         products.append(product)
 
