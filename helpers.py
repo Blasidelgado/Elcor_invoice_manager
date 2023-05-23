@@ -35,6 +35,8 @@ def parse_afip(page):
     # Start searching for concepts
     while True:
         product = rows[index].strip()
+        print(product)
+        index += 1
         if product == 'IVA': # Missline that tends to appear in some AFIP invoices
             continue
         # Common text lines after concepts in AFIP invoices
