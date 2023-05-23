@@ -30,7 +30,7 @@ class Veryfi():
             company = results['vendor']['name']
             items = results['line_items']
             concepts = []
-            total = float(results['total'])
+            total = float(results['total']) * (-1)
         except:
             return None
         
