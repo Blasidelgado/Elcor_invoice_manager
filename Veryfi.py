@@ -36,6 +36,8 @@ class Veryfi():
         
         for item in items:
             item_desc = item.get('description')
+            if not item_desc:
+                continue
             concepts.append(item_desc) if len(item_desc) < 25 else concepts.append(item_desc[:25])
             
         concepts = '/'.join(concepts)
