@@ -30,11 +30,13 @@ def parse_afip(page):
             temp_dict[key] = value
         # Find concepts previous lines
         if 'Código Producto / Servicio' in line:
-            index = rows.index(line) + 2 # Index + 1 corresponds to a strange pdfplumber behavior
+            index = rows.index(line) + 1
 
     # Start searching for concepts
     while True:
         product = rows[index].strip()
+        if product == 'IVA': # Missline that tends to appear in some AFIP invoices
+            continue
         # Common text lines after concepts in AFIP invoices
         if 'Importe Otros Tributos' in product or 'Subtotal' in product:
             break
