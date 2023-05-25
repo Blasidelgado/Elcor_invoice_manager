@@ -41,21 +41,24 @@ def parse_afip(page):
         products.append(product)
 
     # Take required data
-    date = temp_dict.get('Fecha de Emisión')
-    date = datetime.strptime(date, '%d/%m/%Y')
-    # If owner company is the emittor, take the receiver, else take the emittor
-    company = temp_dict['Razón Social'] if temp_dict['Razón Social'] != 'GRAINING SA' else temp_dict['Apellido y Nombre / Razón Social']
-    concepts = '/'.join(products)
-    # Clean total in order to convert it into a number
-    total = temp_dict['Importe Total'].removeprefix('$').strip().replace(',', '.')
-    # If owner company is the emittor, take the amount as positive, else account as negative balance
-    total = float(total) if temp_dict['Razón Social'] == 'GRAINING SA' else float(total) * (-1)
+    try:
+        date = temp_dict['Fecha de Emisión']
+        date = datetime.strptime(date, '%d/%m/%Y')
+        # If owner company is the emittor, take the receiver, else take the emittor
+        company = temp_dict['Razón Social'] if temp_dict['Razón Social'] != 'GRAINING SA' else temp_dict['Apellido y Nombre / Razón Social']
+        concepts = '/'.join(products)
+        # Clean total in order to convert it into a number
+        total = temp_dict['Importe Total'].removeprefix('$').strip().replace(',', '.')
+        # If owner company is the emittor, take the amount as positive, else account as negative balance
+        total = float(total) if temp_dict['Razón Social'] == 'GRAINING SA' else float(total) * (-1)
+    except:
+        return None
     
     info = {'date': date, 'company': company, 'concepts': concepts, 'total': total}
 
     return info
 
-    
+
 def update_worksheet(worksheet, data):
     last_row = worksheet.max_row
     worksheet.insert_rows(last_row + 1)
@@ -76,6 +79,9 @@ def manipulate_invoice(filepath, invoice, suf, type, data):
     # Get date from file
     date = data.get('date')
     day, year, month = date.day, date.year, date.month
+
+    # Format month to be always 2 digits
+    month = str(month) if month > 9 else "0"+str(month)
 
     # Create new filename and helper variable for duplicates
     filename = f"{filepath}/{type}/{year}/{month}/{data.get('company')} {day}-{month}-{year}"

@@ -100,8 +100,6 @@ class ElcorInvoiceManager:
                 # Read pdf with pdfplumber
                 reader = pdfplumber.open(invoice)
 
-                print(reader.metadata)
-
                 # Take only the first pdf page
                 page = reader.pages[0]
 
@@ -109,17 +107,24 @@ class ElcorInvoiceManager:
                 if reader.metadata.get('Creator') == 'AFIP': # Administración Federal de Ingresos Públicos   
                     data = parse_afip(page)
 
-                    # Append data to data_list
-                    data_list.append(data)
-
                     # Close file
                     reader.close()
 
-                    # Manipulate file in respective inner directory
-                    self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
+                    if not data:
+                        self.console.write(f'Error parsing file {filename}\n')
+                        continue
 
+                    # Append data to data_list
+                    data_list.append(data)
+
+                    # Manipulate file in respective inner directory
+                    self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
+                
                 else: # PDF file is sent to our trusted API
                     data = self.verify.parse_veryfi(invoice, self.client)
+
+                    # Close file
+                    reader.close()
 
                     if not self.verify.check_response(filename, data):
                         continue
@@ -127,30 +132,26 @@ class ElcorInvoiceManager:
                     # Append data to data_list
                     data_list.append(data)
 
-                    # Close file
-                    reader.close()
-                    
                     # Manipulate file in respective inner directory
-                    self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
+                    self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
 
-                    
             else: # File is an image that will be sent to our trusted API
                 data = self.verify.parse_veryfi(invoice, self.client)
                 
+                # Close file
+                reader.close()
+
                 if not self.verify.check_response(filename, data):
                     continue
                 
                 # Append data to data_list
                 data_list.append(data)
 
-                # Close file
-                reader.close()
-
                 # Manipulate file in respective inner directory
-                self.console.write(manipulate_invoice(p, invoice, suffix, 'invoices', data))
+                self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
 
         # Sort the data list by date
-        sorted(data_list, key=itemgetter('date'))
+        data_list = sorted(data_list, key=itemgetter('date'))
 
         # Iterate data from datalist and append each into a new row
         for data in data_list:
