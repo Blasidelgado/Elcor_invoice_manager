@@ -4,7 +4,7 @@ import veryfi
 from veryfi.errors import BadRequest, ResourceNotFound, UnauthorizedAccessToken, UnexpectedHTTPMethod, AccessLimitReached, InternalError
 
 
-class Veryfi():
+class Veryfi:
 
     def __init__(self, elcor_invoice_manager):
         self.elcor_invoice_manager = elcor_invoice_manager 
@@ -28,12 +28,12 @@ class Veryfi():
             unformatted_date = results['date']
             date = datetime.strptime(unformatted_date, '%Y-%m-%d %H:%M:%S')
             company = results['vendor']['name']
-            items = results['line_items']
+            items = results['line_items'] if results['line_items'] != '' else ValueError # If no line items, wont parse as valid invoice
             total = float(results['total']) * (-1)
         except:
             return None
         
-        # Avoid duplicates in concepts for cases of multiple pages submissions
+        # Avoid duplicates or new lines in line items
         concepts = {item['description'].replace('\n', ' ') for item in items if item.get('description')}
         concepts = '/'.join(list(concepts))
 
@@ -50,10 +50,11 @@ class Veryfi():
             elif response == 408:
                 self.elcor_invoice_manager.console.write('Check your internet connection.\n')
             elif response == None:
-                self.elcor_invoice_manager.console.write('Provide a clearer document and try again.\n')
+                self.elcor_invoice_manager.console.write('Something went wrong. Make sure the file provided is a valid and readable invoice and try again.\n')
             else:
                 self.elcor_invoice_manager.console.write('Something went wrong. Please try again later.\n')
 
             return False
         
         return True
+    
