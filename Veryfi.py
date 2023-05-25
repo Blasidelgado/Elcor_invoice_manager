@@ -23,22 +23,19 @@ class Veryfi:
             return 401
         except BadRequest or ResourceNotFound or UnexpectedHTTPMethod or AccessLimitReached or InternalError:
             return 500
-
+        
         try:
             unformatted_date = results['date']
             date = datetime.strptime(unformatted_date, '%Y-%m-%d %H:%M:%S')
             company = results['vendor']['name']
             items = results['line_items']
-            concepts = []
             total = float(results['total']) * (-1)
         except:
             return None
         
-        for item in items:
-            item_desc = item.get('description')
-            concepts.append(item_desc) if len(item_desc) < 25 else concepts.append(item_desc[:25])
-            
-        concepts = '/'.join(concepts)
+        # Avoid duplicates or new lines in line items
+        concepts = {item['description'].replace('\n', ' ') for item in items if item.get('description')}
+        concepts = '/'.join(list(concepts))
 
         info = {'date': date, 'company': company, 'concepts': concepts, 'total': total}
 
@@ -60,3 +57,4 @@ class Veryfi:
             return False
         
         return True
+    
