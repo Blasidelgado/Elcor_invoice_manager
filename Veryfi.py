@@ -28,7 +28,9 @@ class Veryfi:
             unformatted_date = results['date']
             date = datetime.strptime(unformatted_date, '%Y-%m-%d %H:%M:%S')
             company = results['vendor']['name']
-            items = results['line_items'] if results['line_items'] != '' else ValueError # If no line items, wont parse as valid invoice
+            items = results['line_items']
+            if not items: # If no line items, wont parse as valid invoice
+                raise Exception
             total = float(results['total']) * (-1)
         except:
             return None
