@@ -59,6 +59,7 @@ class ElcorInvoiceManager:
         self.console.write(f'Selected xlsl file: {self.selected_xlsx}\n')
 
     def start_processing(self):
+        self.console.flush()
         if self.selected_directory is None:
             self.console.write("Please select a directory\n")
             return
@@ -106,6 +107,7 @@ class ElcorInvoiceManager:
                 # Read document metadata for further processing
                 if reader.metadata.get('Creator') == 'AFIP': # Administración Federal de Ingresos Públicos   
                     data = parse_afip(page)
+                    print('data gathered')
 
                     # Close file
                     reader.close()
@@ -116,6 +118,7 @@ class ElcorInvoiceManager:
 
                     # Append data to data_list
                     data_list.append(data)
+
 
                     # Manipulate file in respective inner directory
                     self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
