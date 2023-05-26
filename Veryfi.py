@@ -1,4 +1,5 @@
 from datetime import datetime
+import requests
 
 import veryfi
 from veryfi.errors import BadRequest, ResourceNotFound, UnauthorizedAccessToken, UnexpectedHTTPMethod, AccessLimitReached, InternalError
@@ -17,7 +18,7 @@ class Veryfi:
     def parse_veryfi(self, page, client):
         try:
             results = client.process_document(page)
-        except ConnectionError:
+        except requests.exceptions.ConnectionError:
             return 408
         except UnauthorizedAccessToken:
             return 401
