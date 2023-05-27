@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 
-def parse_afip(page):
+def parse_afip(page, owner_company):
     # Extract text from page
     text = page.extract_text(x_tolerance=2, y_tolerance=1)
     # Create a list using line breaks and declare a new dict
@@ -49,12 +49,14 @@ def parse_afip(page):
         date = temp_dict['Fecha de Emisión']
         date = datetime.strptime(date, '%d/%m/%Y')
         # If owner company is the emittor, take the receiver, else take the emittor
-        company = temp_dict['Razón Social'] if temp_dict['Razón Social'] != 'GRAINING SA' else temp_dict['Apellido y Nombre / Razón Social']
+        emittor_name = temp_dict['Razón Social'].upper()
+        receiver_name = temp_dict['Apellido y Nombre / Razón Social'].upper()
+        company = receiver_name if owner_company.upper() in emittor_name else emittor_name
         concepts = '/'.join(products)
         # Clean total in order to convert it into a number
         total = temp_dict['Importe Total'].removeprefix('$').strip().replace(',', '.')
         # If owner company is the emittor, take the amount as positive, else account as negative balance
-        total = float(total) if temp_dict['Razón Social'] == 'GRAINING SA' else float(total) * (-1)
+        total = float(total) if owner_company.upper() in emittor_name else float(total) * (-1)
     except:
         return None
     

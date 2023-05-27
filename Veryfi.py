@@ -15,7 +15,7 @@ class Veryfi:
         return veryfi.Client(client_id, client_secret, username, api_key)
     
     
-    def parse_veryfi(self, page, client):
+    def parse_veryfi(self, page, client, owner_company):
         try:
             results = client.process_document(page)
         except requests.exceptions.ConnectionError:
@@ -28,11 +28,13 @@ class Veryfi:
         try:
             unformatted_date = results['date']
             date = datetime.strptime(unformatted_date, '%Y-%m-%d %H:%M:%S')
-            company = results['vendor']['name']
+            vendor_name = results['vendor']['name'].upper()
+            receiver_name = results['bill_to']['name'].upper()
+            company = vendor_name if owner_company.upper() in receiver_name else receiver_name 
             items = results['line_items']
             if not items: # If no line items, wont parse as valid invoice
                 raise Exception
-            total = float(results['total']) * (-1)
+            total = float(results['total']) if owner_company in vendor_name else float(results['total']) * (-1)
         except:
             return None
         
