@@ -59,6 +59,8 @@ class ElcorInvoiceManager:
         self.console.write(f'Selected xlsl file: {self.selected_xlsx}\n')
 
     def start_processing(self):
+        self.console.flush()
+        
         if self.selected_directory is None:
             self.console.write("Please select a directory\n")
             return
