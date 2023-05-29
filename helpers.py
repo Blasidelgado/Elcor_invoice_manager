@@ -81,7 +81,7 @@ def update_worksheet(worksheet, data):
 
     return f'New data appended in row {last_row + 1}\n'
 
-def manipulate_invoice(filepath, invoice, suf, type, data):
+def manipulate_invoice(filepath, invoice, suf, data):
     # Get date from file
     date = data.get('date')
     day, year, month = date.day, date.year, date.month
@@ -90,10 +90,10 @@ def manipulate_invoice(filepath, invoice, suf, type, data):
     month = str(month) if month > 9 else "0"+str(month)
 
     # Create new filename and helper variable for duplicates
-    filename = f"{filepath}/{type}/{year}/{month}/{data.get('company')} {day}-{month}-{year}"
+    filename = f"{filepath}/{year}/{month}/{data.get('company')} {day}-{month}-{year}"
     count = 1
 
-    if os.path.exists(f"{filepath}/{type}/{year}/{month}/"):
+    if os.path.exists(f"{filepath}/{year}/{month}/"):
         try:
             os.rename(invoice, filename + suf)
         except FileExistsError:
@@ -105,7 +105,7 @@ def manipulate_invoice(filepath, invoice, suf, type, data):
             os.rename(invoice, filename + suf)
 
     else:
-        os.makedirs(f"{filepath}/{type}/{year}/{month}")
+        os.makedirs(f"{filepath}/{year}/{month}")
         os.rename(invoice, filename + suf)
 
     return f'Renamed {filename + suf} and moved succesfully\n'

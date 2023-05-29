@@ -138,7 +138,7 @@ class ElcorInvoiceManager:
                     data_list.append(data)
 
                     # Manipulate file in respective inner directory
-                    self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
+                    self.console.write(manipulate_invoice(p, invoice, suffix, data))
                 
                 else: # PDF file is sent to our trusted API
                     data = self.verify.parse_veryfi(invoice, self.client, self.selected_company)
@@ -153,7 +153,7 @@ class ElcorInvoiceManager:
                     data_list.append(data)
 
                     # Manipulate file in respective inner directory
-                    self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
+                    self.console.write(manipulate_invoice(p, invoice, suffix, data))
 
             else: # File is an image that will be sent to our trusted API
                 data = self.verify.parse_veryfi(invoice, self.client, self.selected_company)
@@ -168,7 +168,7 @@ class ElcorInvoiceManager:
                 data_list.append(data)
 
                 # Manipulate file in respective inner directory
-                self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
+                self.console.write(manipulate_invoice(p, invoice, suffix, data))
 
         # Sort the data list by date
         data_list = sorted(data_list, key=itemgetter('date'))
