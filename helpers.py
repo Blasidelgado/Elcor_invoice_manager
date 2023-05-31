@@ -51,7 +51,12 @@ def parse_afip(page, owner_company):
         # If owner company is the emittor, take the receiver, else take the emittor
         emittor_name = temp_dict['Razón Social'].upper()
         receiver_name = temp_dict['Apellido y Nombre / Razón Social'].upper()
-        company = receiver_name if owner_company.upper() in emittor_name else emittor_name
+        if owner_company.upper() in emittor_name:
+            company = receiver_name
+        elif owner_company.upper() in receiver_name:
+            company = emittor_name
+        else:
+            raise Exception
         concepts = '/'.join(products)
         # Clean total in order to convert it into a number
         total = temp_dict['Importe Total'].removeprefix('$').strip().replace(',', '.')

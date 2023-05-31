@@ -131,7 +131,7 @@ class ElcorInvoiceManager:
                     reader.close()
 
                     if not data:
-                        self.console.write(f'Error parsing file {filename}\n')
+                        self.console.write(f'Error parsing file {filename}.\nMake sure the invoice is in AFIP format and emitted or receipted by the provided company.\n')
                         continue
 
                     # Append data to data_list

@@ -30,7 +30,12 @@ class Veryfi:
             date = datetime.strptime(unformatted_date, '%Y-%m-%d %H:%M:%S')
             vendor_name = results['vendor']['name'].upper()
             receiver_name = results['bill_to']['name'].upper()
-            company = vendor_name if owner_company.upper() in receiver_name else receiver_name 
+            if owner_company.upper() in vendor_name:
+                company = receiver_name
+            elif owner_company.upper() in receiver_name:
+                company = vendor_name
+            else:
+                raise Exception
             items = results['line_items']
             if not items: # If no line items, wont parse as valid invoice
                 raise Exception
