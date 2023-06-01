@@ -76,19 +76,20 @@ To install the required packages for this project, follow the steps below:
 
 1. **Setting up a Virtual Environment (Optional)**
 
-   It's recommended to set up a virtual environment to keep your project dependencies isolated. If you prefer not to use a virtual environment, you can skip this step.
+    It's recommended to set up a virtual environment to keep your project dependencies isolated. If you prefer not to use a virtual environment, you can skip this step.
+    Depending on your python version, you may need to use the python3 command instead:
 
     - **macOS/Linux**:
 
     ```shell
-    python3 -m venv venv
+    python -m venv venv
     source venv/bin/activate
     ```
 
     - **Windows**:
 
     ```shell
-    python3 -m venv venv
+    python -m venv venv
     venv\Scripts\activate
     ```
 
@@ -212,4 +213,3 @@ Contributions are welcome! If you would like to contribute to this project, plea
 - Submit your contributions via [pull requests](https://github.com/Blasidelgado/Elcor_invoice_manager).
 
 Thank you for your interest in contributing to this project!
-
