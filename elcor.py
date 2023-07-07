@@ -1,8 +1,8 @@
 import tkinter as tk
+from tkinter import filedialog
 from datetime import datetime
 from operator import itemgetter
 from pathlib import Path
-from tkinter import filedialog
 
 import dotenv
 import pdfplumber
@@ -107,7 +107,6 @@ class ElcorInvoiceManager:
                 # Read document metadata for further processing
                 if reader.metadata.get('Creator') == 'AFIP': # Administración Federal de Ingresos Públicos   
                     data = parse_afip(page)
-                    print('data gathered')
 
                     # Close file
                     reader.close()
@@ -124,7 +123,7 @@ class ElcorInvoiceManager:
                     self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
                 
                 # PDF engines used by our bank to generate pdfs
-                elif reader.metadata.get('Producer') == 'Skia/PDF m112' or reader.metadata.get('Producer') == 'Skia/PDF m113':
+                elif 'Skia/PDF' in reader.metadata.get('Producer'):
                     data = parse_bank(page)
 
                     # Close file
@@ -184,4 +183,8 @@ class ElcorInvoiceManager:
 
             # Save worksheet    
             wb.save(xlsx)
+        
+        self.console.write("Exiting Program Succesfully")
+        return
+    
                 

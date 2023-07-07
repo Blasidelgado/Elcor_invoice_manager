@@ -121,6 +121,8 @@ def manipulate_invoice(filepath, invoice, suf, type, data):
 
     # Create new filename and helper variable for duplicates
     filename = f"{filepath}/{type}/{year}/{month}/{data.get('company')} {day}-{month}-{year}"
+    # Remove conflictive characters in filename
+    filename = filename.replace('"', "")
     count = 1
 
     if os.path.exists(f"{filepath}/{type}/{year}/{month}/"):
