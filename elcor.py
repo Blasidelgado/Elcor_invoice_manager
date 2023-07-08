@@ -123,8 +123,7 @@ class ElcorInvoiceManager:
                     self.console.write(manipulate_invoice(p, invoice, suffix, 'facturas', data))
                 
                 # PDF engines used by our bank to generate pdfs
-                elif 'Skia/PDF' in reader.metadata.get('Producer'):
-                    data = parse_bank(page)
+                elif reader.metadata.get('Producer') == 'Skia/PDF m114':
 
                     # Close file
                     reader.close()
@@ -184,7 +183,5 @@ class ElcorInvoiceManager:
             # Save worksheet    
             wb.save(xlsx)
         
-        self.console.write("Exiting Program Succesfully")
-        return
-    
-                
+        self.console.write("Finished parsing succesfully")
+      
