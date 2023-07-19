@@ -101,6 +101,8 @@ class ElcorInvoiceManager:
                 # Read pdf with pdfplumber
                 reader = pdfplumber.open(invoice)
 
+                print(reader.metadata)
+                
                 # Take only the first pdf page
                 page = reader.pages[0]
 
@@ -124,6 +126,8 @@ class ElcorInvoiceManager:
                 
                 # PDF engines used by our bank to generate pdfs
                 elif reader.metadata.get('Producer') == 'Skia/PDF m114':
+
+                    data = parse_bank(page)
 
                     # Close file
                     reader.close()
