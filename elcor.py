@@ -1,3 +1,5 @@
+import os
+import sys
 import tkinter as tk
 from tkinter import filedialog
 from datetime import datetime
@@ -20,11 +22,29 @@ class ElcorInvoiceManager:
         self.selected_xlsx = None
         self.setup_ui()
         self.verify = Veryfi(self)
-        dotenv.load_dotenv() # Load .env keys
-        # Call setup verify to set up keys for further api requests
-        self.client = self.verify.setup_veryfi(dotenv.get_key('.env', 'CLIENT_ID'), 
-            dotenv.get_key('.env', 'CLIENT_SECRET'), dotenv.get_key('.env', 'USERNAME'), 
-            dotenv.get_key('.env', 'API_KEY'))
+
+        # Get project folder path and load env variables
+        entry_file = sys.argv[0]
+        script_path = os.path.abspath(sys.argv[0])
+        if 'main.exe' in entry_file:
+            project_folder = os.path.dirname(os.path.dirname(script_path))
+        elif 'main.py' in entry_file:
+            project_folder = os.path.dirname(script_path)
+        else:
+            sys.exit(1)
+            
+        dotenv_path = os.path.join(project_folder, '.env')
+        dotenv.load_dotenv(dotenv_path) # Load .env keys
+
+        # Access required env variables
+        client_id = os.environ.get('VERYFI_CLIENT_ID')
+        client_secret = os.environ.get('VERYFI_CLIENT_SECRET')
+        username = os.environ.get('VERYFI_USERNAME')
+        api_key = os.environ.get('VERYFI_API_KEY')
+
+        # Load required credentials and create client
+        self.client = self.verify.setup_veryfi(client_id, client_secret, username, api_key)
+
         self.root.mainloop()
         
     def setup_ui(self):
