@@ -10,6 +10,7 @@
 # ignore compiled files
 /dist
 /build
+main.spec
 
 # ignore cached files
 /__pycache__
