@@ -7,6 +7,7 @@ def parse_afip(page):
     text = page.extract_text(x_tolerance=2, y_tolerance=1)
     # Create a list using line breaks and declare a new dict
     rows = text.split('\n')
+    # Dict to store 
     temp_dict = {}
 
     products = []
@@ -14,22 +15,33 @@ def parse_afip(page):
     for line in rows:
         # Format text lines into dicts
         if ':' in line:
-            # Check for conflictive line
+            # Check for conflictive lines and get the needed company name
             if 'Apellido y Nombre / Razón Social' in line:
                 index = line.find('Apellido y Nombre / Razón Social')
-                line2 = line[index:]
-                line = line[:index]
+                line1, line2 = line[:index], line[index:]
+                # Split the string into a list
                 pairs = line2.split(':')
+                # Create a dict with key 'apellido'.. and value
                 key, value = pairs[0].strip(), pairs[1].strip()
                 temp_dict[key] = value
-
-            # Split line into key-value pairs using ':' as a separator
-            pairs = line.split(':')
-            # Add first pair to the info_dict
-            key, value = pairs[0].strip(), pairs[1].strip()
-            temp_dict[key] = value
+            elif 'Señor(es)' in line:
+                index = line.find('Domicilio:')
+                line1, line2 = line[:index], line[index:]
+                # Split the string into a list
+                pairs = line1.split(':')
+                # Create a dict with key 'apellido'.. and value
+                key, value = pairs[0].strip(), pairs[1].strip()
+                print(key, value)
+                temp_dict[key] = value
+            else:
+                # Split line into key-value pairs using ':' as a separator
+                pairs = line.split(':')
+                # Add first pair to the info_dict
+                key, value = pairs[0].strip(), pairs[1].strip()
+                temp_dict[key] = value
+                
         # Find concepts previous lines
-        if 'Código Producto / Servicio' in line:
+        if 'Código Producto / Servicio' in line or 'Ítem Descripción' in line:
             index = rows.index(line) + 1
 
     # Start searching for concepts
@@ -39,7 +51,7 @@ def parse_afip(page):
         if product == 'IVA': # Missline that tends to appear in some AFIP invoices
             continue
         # Common text lines after concepts in AFIP invoices
-        if 'Importe Otros Tributos' in product or 'Subtotal' in product:
+        if 'Importe Otros Tributos' in product or 'Subtotal' in product or 'Divisa' in product:
             break
         product = product[:25] if len(product) > 25 else product
         products.append(product)
@@ -49,13 +61,20 @@ def parse_afip(page):
         date = temp_dict['Fecha de Emisión']
         date = datetime.strptime(date, '%d/%m/%Y')
         # If owner company is the emittor, take the receiver, else take the emittor
-        company = temp_dict['Razón Social'] if temp_dict['Razón Social'] != 'GRAINING SA' else temp_dict['Apellido y Nombre / Razón Social']
+        if temp_dict['Razón Social'] != 'GRAINING SA':
+            company = temp_dict['Razón Social']
+        elif temp_dict.get('Apellido y Nombre / Razón Social'):
+            company = temp_dict['Apellido y Nombre / Razón Social']
+        elif temp_dict.get('Señor(es)'):
+            company = temp_dict['Señor(es)']
+
         concepts = '/'.join(products)
         # Clean total in order to convert it into a number
         total = temp_dict['Importe Total'].removeprefix('$').strip().replace(',', '.')
         # If owner company is the emittor, take the amount as positive, else account as negative balance
         total = float(total) if temp_dict['Razón Social'] == 'GRAINING SA' else float(total) * (-1)
-    except:
+    except Exception as e:
+        print(e)
         return None
     
     info = {'date': date, 'company': company, 'concepts': concepts, 'total': total}
